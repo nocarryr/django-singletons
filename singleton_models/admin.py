@@ -1,19 +1,22 @@
+from __future__ import absolute_import, print_function, unicode_literals
+
+from functools import wraps
+
 from django.contrib import admin
 from django.utils.translation import ugettext as _
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.http import HttpResponseRedirect
-from functools import wraps
 
 
 def singleton_view(fn_name):
     def view(self, request, object_id, extra_context=None):
-        object_id = u'1'
+        object_id = '1'
         self.model.objects.get_or_create(pk=1)
 
         super_view = getattr(super(SingletonModelAdmin, self), fn_name)
         return super_view(request, object_id, extra_context=extra_context)
 
-    view.__name__ = fn_name
+    view.__name__ = str(fn_name)
     return view
 
 
@@ -45,11 +48,11 @@ class SingletonModelAdmin(admin.ModelAdmin):
             '',
             url(r'^history/$',
                 wrap(self.history_view),
-                {u'object_id': 1},
+                {'object_id': 1},
                 name='%s_%s_history' % info),
             url(r'^$',
                 wrap(self.change_view),
-                {u'object_id': 1},
+                {'object_id': 1},
                 name='%s_%s_change' % info),
             url(r'^$',
                 wrap(self.changelist_view),
@@ -64,7 +67,7 @@ class SingletonModelAdmin(admin.ModelAdmin):
         """
         opts = obj._meta
 
-        msg = _('%(obj)s was changed successfully.') % {'obj': force_unicode(obj)}
+        msg = _('%(obj)s was changed successfully.') % {'obj': force_text(obj)}
         if "_continue" in request.POST:
             self.message_user(request, msg + ' ' + _("You may edit it again below."))
             return HttpResponseRedirect(request.path)
